@@ -12,6 +12,9 @@ bun run dev      # Vite on :5173, proxies /api and /ws
 
 `bun run server` and `bun run dev` never update themselves; only `bun run start` and the plugin run the update supervisor.
 
+Image uploads use a client-side worker before encoding the request. See
+[image upload optimization](image-upload-optimization.md) for policy, verification and Windows acceptance.
+
 ## Checks
 
 Production builds create Brotli (`.br`) and gzip (`.gz`) sidecars for JavaScript and CSS under

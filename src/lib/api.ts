@@ -70,6 +70,8 @@ import type { VoiceConfigUpdate, VoiceStatus } from "../../shared/voice.ts";
 import { MAX_ATTACHMENT_BYTES } from "../../shared/attachments.ts";
 import { t } from "./i18n.ts";
 import { chatReadDeadlineMs, withChatReadDeadline } from "./chatReadDeadline.ts";
+import { normalizeComposerImageFile } from "./composerImageMime.ts";
+import { optimizeUploadImage } from "./optimizeUploadImage.ts";
 
 /** Settings → Phone: what Tailscale on the server's PC already serves, or the command to run. */
 export function fetchRemoteAccess(): Promise<RemoteAccess> {
@@ -400,6 +402,9 @@ export function assertAttachable(file: Blob): void {
  */
 /** Any file: an image is stored as a paste, anything else under its own (sanitised) name. */
 export async function uploadPaneImage(paneId: string, image: Blob, machineId = "local"): Promise<string> {
+  assertAttachable(image);
+  if (image instanceof File) image = normalizeComposerImageFile(image);
+  image = await optimizeUploadImage(image);
   assertAttachable(image);
   const data_base64 = base64FromBytes(new Uint8Array(await image.arrayBuffer()));
   const response = await fetch(machinePath(machineId, "pane/image"), {

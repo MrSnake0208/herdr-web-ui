@@ -1668,6 +1668,19 @@ describe("POST /api/pane/image", () => {
     expect(stored.isFile()).toBe(true);
   });
 
+  it("stores optimized WebP bytes with a matching extension and private permissions", async () => {
+    const webp = readFileSync(new URL("../site/assets/strip-dark.webp", import.meta.url));
+    expect(webp.subarray(0, 4).toString()).toBe("RIFF");
+    expect(webp.subarray(8, 12).toString()).toBe("WEBP");
+    const res = await post({ pane_id: qaPaneId, content_type: "image/webp", name: "screenshot.webp", data_base64: webp.toString("base64") });
+    expect(res.status).toBe(200);
+    const { path } = await res.json() as { path: string };
+    expect(path.startsWith(join(qaCwd!, ".herdr-web-ui") + "/")).toBe(true);
+    expect(path.endsWith(".webp")).toBe(true);
+    expect(readFileSync(path)).toEqual(webp);
+    if (process.platform !== "win32") expect(statSync(path).mode & 0o777).toBe(0o600);
+  });
+
   it("rejects an unknown pane with the shared error envelope", async () => {
     const res = await post({ pane_id: "w9999:p9999", content_type: "image/png", data_base64: TINY_PNG_BASE64 });
     expect(res.status).toBe(404);
